@@ -7,6 +7,11 @@ const PORT = process.env.PORT || 3000;
 const MODEL = process.env.CLAUDE_MODEL || "claude-opus-5-5";
 
 app.use(express.json({ limit: "100kb" }));
+
+// Kod akses pilihan: jika ACCESS_CODE ditetapkan, hanya pengguna yang tahu kod boleh terjemah.
+const ACCESS_CODE = process.env.ACCESS_CODE || "";
+app.get("/api/config", (req, res) => res.json({ needsCode: Boolean(ACCESS_CODE) }));
+app.get("/healthz", (req, res) => res.send("ok"));
 app.use(express.static("public"));
 
 const SYSTEM_PROMPT = `You are a real-time interpreter for a face-to-face conversation between two people who speak different languages.
@@ -18,15 +23,22 @@ Rules:
 - If the utterance is already in the target language, return it unchanged.`;
 
 app.post("/api/translate", async (req, res) => {
+  if (ACCESS_CODE && req.get("x-access-code") !== ACCESS_CODE) {
+    return res.status(401).json({ error: "Kod akses salah.", code: "bad_access_code" });
+  }
+
   const { text, from, to, history } = req.body ?? {};
   if (typeof text !== "string" || !text.trim() || !from || !to) {
     return res.status(400).json({ error: "Perlu 'text', 'from' dan 'to'." });
+  }
+  if (text.length > 2000) {
+    return res.status(400).json({ error: "Teks terlalu panjang (maks 2000 aksara)." });
   }
 
   const recent = Array.isArray(history)
     ? history
         .slice(-6)
-        .map((h) => `${h.speaker}: ${h.text}`)
+        .map((h) => `${h.speaker}: ${String(h.text).slice(0, 500)}`)
         .join("\n")
     : "";
 

@@ -144,10 +144,11 @@ async function handleUtterance(speaker, text) {
 
   try {
     const res = await fetch("/api/translate", {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method: "POST", headers: { "Content-Type": "application/json", "X-Access-Code": store.get("access-code", "") },
       body: JSON.stringify({ text, from: langName(from), to: langName(to), history: state.history }),
     });
     const data = await res.json().catch(() => ({}));
+    if (data.code === "bad_access_code") { store.set("access-code", ""); askCode(); }
     if (!res.ok) throw new Error(data.error || "Ralat " + res.status);
 
     pending.className = "msg theirs";
@@ -237,6 +238,14 @@ document.getElementById("clear").onclick = () => {
   for (const s of Object.values(sides)) s.log.innerHTML = "";
   renderEmpty();
 };
+function askCode() {
+  const c = prompt("Masukkan kod akses app:");
+  if (c) store.set("access-code", c.trim());
+}
+fetch("/api/config").then((r) => r.json()).then((c) => {
+  if (c.needsCode && !store.get("access-code", "")) askCode();
+}).catch(() => {});
+
 if ("speechSynthesis" in window) speechSynthesis.getVoices();
 renderEmpty();
 </script>
