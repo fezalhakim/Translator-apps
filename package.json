@@ -1,0 +1,26 @@
+{
+  "name": "ai-translator-perbualan",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fezalhakim/Translator-apps.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fezalhakim/Translator-apps/issues"
+  },
+  "homepage": "https://github.com/fezalhakim/Translator-apps#readme",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
+    "express": "^5.3.0"
+  }
+}
